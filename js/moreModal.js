@@ -6,6 +6,19 @@ export default{
             addNum:1,
             url: 'https://vue3-course-api.hexschool.io/',
             path: 'jason06286',
+            nowTemp:{
+                    title: "", 
+                    category: "",
+                    origin_price:"",
+                    price: "",
+                    unit: "",
+                    description: "",
+                    content: "",
+                    is_enabled: "",
+                    imageUrl : "",
+                    imagesUrl: [],
+            },
+            isLoading:'',
         }
     },
     methods: {
@@ -14,6 +27,7 @@ export default{
             this.myModal.show()
         },
         addCart(e,num=this.addNum){
+            this.isLoading=e.target.dataset.id
             let productId=e.target.dataset.id
             let productarray={}
             console.log(productId);
@@ -40,6 +54,7 @@ export default{
                             this.myModal.hide()
                             alert('加入購物車成功')
                             this.addNum=1
+                            this.isLoading=''
                             this.$emit('getCartData')
                         }else{
                             alert(res.data.message)
@@ -92,7 +107,12 @@ export default{
                 loader.hide()
             }, 3000)
         },
-
+    },
+    watch:{
+        temp(){
+            this.nowTemp=this.temp
+            console.log(this.nowTemp);
+        }
     },
     mounted() {
         this.myModal=new bootstrap.Modal(this.$refs.moreModal)
@@ -102,23 +122,28 @@ export default{
         <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-            <h5 class="modal-title">{{temp.title}}</h5>
+            <h5 class="modal-title">{{nowTemp.title}}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-            <img :src="temp.imageUrl"  class="w-100" alt="..."  style="height: 300px;" v-if="temp.imageUrl">
-            <img :src="temp.imagesUrl[0]"  class="w-100" alt="" style="height: 300px;" v-else>
-            <p class="my-3">description:{{temp.description}}</p>
-            <p  class="mb-3">content:{{temp.content}}</p>
+            <img :src="nowTemp.imageUrl"  class="w-100" alt="..."  style="height: 300px;" v-if="nowTemp.imageUrl">
+            <img :src="nowTemp.imagesUrl[0]"  class="w-100" alt="" style="height: 300px;" v-else>
+            <p class="my-3">description:{{nowTemp.description}}</p>
+            <p  class="mb-3">content:{{nowTemp.content}}</p>
             <div class="d-flex justify-content-between">
-                <small class="mb-2"><del>原價{{temp.origin_price}}</del></small>
-                <p class="mb-2">現在只要{{temp.price}}</p>
+                <small class="mb-2"><del>原價{{nowTemp.origin_price}}</del></small>
+                <p class="mb-2">現在只要{{nowTemp.price}}</p>
             </div>
             </div>
             <div class="modal-footer">
                 <div class="input-group mb-3">
-                    <input type="number" min="1" class="form-control"  aria-label="Recipient's username" aria-describedby="button-addon2" value="1" v-model="addNum">
-                    <button class="btn btn-primary" type="button" id="button-addon2" :data-id="temp.id" @click.prevent="addCart">加入購物車</button>
+                    <button class="btn btn-secondary" type="button" @click="addNum=addNum-1">-</button>
+                    <input type="number" min="1" class="form-control"  aria-label="Recipient's username" aria-describedby="button-addon2" value="1" v-model="addNum" disabled>
+                    <button class="btn btn-secondary" type="button" @click="addNum=addNum+1 ">+</button>
+                    <button class="btn btn-primary" type="button":data-id="nowTemp.id" @click.prevent="addCart">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" v-if="nowTemp.id===isLoading"></span>
+                        加入購物車
+                    </button>
                 </div>
             </div>
         </div>

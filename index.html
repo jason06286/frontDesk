@@ -22,8 +22,13 @@
                                 <small class="mb-2"><del>原價{{item.origin_price}}</del></small>
                                 <p class="mb-2">現在只要{{item.price}}</p>
                                 <div class="d-flex justify-content-between">
-                                    <a href="#" class="btn btn-secondary" @click.prevent="showMoreModal(item)" >查看更多</a>
-                                    <button href="#" class="btn   btn-primary" :data-id="item.id" value="1" @click.prevent="addCart($event)">加入購物車</button>
+                                    <button class="btn btn-secondary" type="button"  @click.prevent="showMoreModal(item)">
+                                        查看更多
+                                    </button>
+                                    <button class="btn btn-primary" type="button" :data-id="item.id" value="1" @click.prevent="addCart($event)">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"  v-if="item.id===isLoading"></span>
+                                        加入購物車
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -31,10 +36,13 @@
                 </div>
             </div>
         </section>
-        <section >
+        <section class="mb-5" >
             <div class="container">
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-danger" @click.prevent="allDelCart">清空購物車</button>
+                    <button class="btn btn-danger" type="button"  @click.prevent="allDelCart">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"  v-if="isLoading==='123'"></span>
+                        清空購物車
+                    </button>
                 </div>
                 <table class="table table-dark table-striped table-hover   mt-4" >
                     <thead>
@@ -51,23 +59,28 @@
                         </tr>
                     </thead>
                     <tbody >
-                        <tr v-for="(item, index) in cartData.carts" :key="item.id">
-                            <td class="align-items-center"><button type="button" class="btn btn-danger " @click.prevent="delCart(item.id)"> 刪除</button></td>
-                            <td>{{item.product.title}}</td>
-                            <td>
-                                <img :src="item.product.imageUrl" alt="" style="width: 100px; height: 100px;" v-if="item.product.imageUrl" >
-                                <img :src="item.product.imagesUrl[0]" alt="" style="width: 100px; height: 100px;" v-else>
-                            </td>
-                            <td>
-                                <div class="d-flex">
-                                    <input type="number" min="1" :value="item.qty" :data-id="item.id" @change="editCart">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm text-white  disabled" >
-                                    {{item.product.unit}}
+                            <tr v-for="(item, index) in cartData.carts" :key="item.id">
+                                <td class="align-items-center">
+                                    <button class="btn btn-danger" type="button" @click.prevent="delCart(item.id)">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" v-if="isLoading===item.id"></span>
+                                        刪除
                                     </button>
-                                </div>
-                            </td>
-                            <td class="text-end">{{ format(item.final_total) }}元</td>
-                        </tr>
+                                </td>
+                                <td>{{item.product.title}}</td>
+                                <td>
+                                    <img :src="item.product.imageUrl" alt="" style="width: 100px; height: 100px;" v-if="item.product.imageUrl" >
+                                    <img :src="item.product.imagesUrl[0]" alt="" style="width: 100px; height: 100px;" v-else>
+                                </td>
+                                <td>
+                                    <div class="d-flex">
+                                        <input type="number" min="1" :value="item.qty" :data-id="item.id" @change="editCart">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm text-white  disabled" >
+                                        {{item.product.unit}}
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="text-end">{{ format(item.final_total) }}元</td>
+                            </tr>
                     </tbody>
                     <tfoot>
                         <tr class="table-danger">
@@ -77,6 +90,48 @@
                         </tr>
                     </tfoot>
                 </table>
+            </div>
+        </section>
+        <section >
+            <div class="container">
+                <v-form v-slot="{ errors }" @submit="onSubmit" v-if="cartData.final_total !=0">
+                        <div class="form-group mb-3">
+                            <label for="name" class="mb-2">Name *</label>
+                            <v-field id="name" name="name" type="text"
+                                class="form-control" :class="{ 'is-invalid': errors['name'] }"
+                                placeholder="請輸入 name" rules="required" v-model="user.name"></v-field>
+                            <error-message name="name" class="invalid-feedback"></error-message>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="email" class="mb-2">Email *</label>
+                            <v-field id="email" name="email" type="email"
+                                class="form-control" :class="{ 'is-invalid': errors['email'] }"
+                                placeholder="請輸入 Email" rules="email|required" v-model="user.email"></v-field>
+                            <error-message name="email" class="invalid-feedback"></error-message>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="tel" class="mb-2">Phone *</label>
+                            <v-field id="tel" name="tel" type="tel"
+                                class="form-control" :class="{ 'is-invalid': errors['tel'] }"
+                                placeholder="請輸入 tel" :rules="isPhone" v-model="user.tel"></v-field>
+                            <error-message name="tel" class="invalid-feedback"></error-message>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="address" class="mb-2">Address *</label>
+                            <v-field id="address" name="address" type="text"
+                                class="form-control" :class="{ 'is-invalid': errors['address'] }"
+                                placeholder="請輸入 address" rules="required" v-model="user.address"></v-field>
+                            <error-message name="address" class="invalid-feedback"></error-message>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="message" class="mb-2">Message</label>
+                            <textarea class="form-control" id="message" rows="3" v-model="message"></textarea>
+                        </div>
+                        <button class="btn btn-primary" type="submit" >
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" v-if="isLoading==='submit'"></span>
+                            Submit
+                        </button>
+                </v-form>
             </div>
         </section>
             
@@ -90,9 +145,10 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/vue@next"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@4.0.2/dist/vue-loading.css">
-    <script src="https://cdn.jsdelivr.net/npm/vue-loading-overlay@4.0.2/dist/vue-loading.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/4.3.3/vee-validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vee-validate/rules@4.3.3/dist/vee-validate-rules.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vee-validate/i18n@4.3.3/dist/vee-validate-i18n.min.js"></script>
     <script src="js/all.js" type="module"></script>
 </body>
 </html>

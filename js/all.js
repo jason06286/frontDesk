@@ -24,6 +24,9 @@ import moreModal from './moreModal.js'
                     imageUrl : "",
                     imagesUrl: [],
                 },
+                isLoading:'',
+                user:{},
+                message:''
             };
         },
         methods: {
@@ -45,9 +48,9 @@ import moreModal from './moreModal.js'
                 this.$refs.moreModal.show()
             },
             addCart(e){
-                this.addLoading()
                 console.log(e)
                 console.log(e.target.value);
+                this.isLoading=e.target.dataset.id
                 this.getCartList()
                 this.$refs.moreModal.addCart(e,e.target.value)
             },
@@ -57,20 +60,22 @@ import moreModal from './moreModal.js'
                     url:`${this.url}api/${this.path}/cart`,
                 }).then((res) => {
                     console.log(res)
-                    this.addLoading()
                     this.cartData=res.data.data
+                    this.isLoading=''
                     console.log('this.cartData :>> ', this.cartData);
                 }).catch((err) => {
                     console.log(err);
                 });
             },
             allDelCart(){
+                this.isLoading='123'
                 axios({
                     method:'delete',
                     url:`${this.url}api/${this.path}/carts`,
                 }).then((res) => {
                     if(res.data.success){
                         this.getCartList()
+                        this.isLoading=''
                         alert('刪除成功!!')
                     }
                     console.log(res)
@@ -79,12 +84,14 @@ import moreModal from './moreModal.js'
                 });
             },
             delCart(id){
+                this.isLoading=id
                 axios({
                     method:'delete',
                     url:`${this.url}api/${this.path}/cart/${id}`,
                 }).then((res) => {
                     if(res.data.success){
                         this.getCartList()
+                        this.isLoading=''
                         alert('刪除成功!!')
                     }
                     console.log(res)
@@ -130,14 +137,68 @@ import moreModal from './moreModal.js'
                     loader.hide()
                 }, 3000)
             },
+            isPhone(value) {
+                const phoneNumber = /^(09)[0-9]{8}$/
+                return phoneNumber.test(value) ? true : '需要正確的電話號碼'
+            },
+            onSubmit(){
+                this.isLoading='submit'
+                axios({
+                    method:'post',
+                    url:`${this.url}api/${this.path}/order`,
+                    data:{
+                        data:{
+                            user:this.user,
+                            message:this.message,
+                        }
+                    }
+                }).then((res) => {
+                    if(res.data.success){
+                        this.getCartList()
+                        this.isLoading=''
+                        this.user={}
+                        this.message=''
+                        alert('加入訂單成功!!')
+                    }
+                    console.log('訂單', res)
+                }).catch((err) => {
+                    console.log(err);
+                });
+            },
+            re(){
+                console.log(this.cartData.carts);
+                if(this.cartData.carts){
+                    console.log('123');
+                }else{
+                    console.log('456');
+                }
+            }
             
         },
         mounted() {
             console.log(this.$refs);
             this.getData()
             this.getCartList()
+            this.re()
         },
     },
 );
-app.use(VueLoading)
+    VeeValidateI18n.loadLocaleFromURL('./zh_TW.json');
+    VeeValidate.configure({
+    generateMessage: VeeValidateI18n.localize('zh_TW'),
+    validateOnInput: true, // 調整為輸入字元立即進行驗證
+    });
+    Object.keys(VeeValidateRules).forEach(rule => {
+    if (rule !== 'default') {
+        VeeValidate.defineRule(rule, VeeValidateRules[rule]);
+    }
+    });
+
+
+
+app.component('VForm', VeeValidate.Form);
+app.component('VField', VeeValidate.Field);
+app.component('ErrorMessage', VeeValidate.ErrorMessage);
+
+
 app.mount('#app');
